@@ -27,6 +27,8 @@ endif
 augroup autosave
 	autocmd!
 	autocmd BufRead,BufNewFile   *.note set filetype=markdown
+	"au BufEnter *   execute ":lcd " . expand("%:p:h")
+	autocmd BufEnter * silent! lcd %:p:h
 	autocmd BufRead,BufNewFile   *.* syntax on
 	au CursorHold * call UpdateBuffer()
 augroup END
@@ -40,28 +42,34 @@ command! -complete=customlist,notes#cmd_complete NoteList call notes#list()
 command! -complete=customlist,NavigateNotes -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
 command! AutoSaveToggle :call AutoSaveToggle()
 
-function! notes#edit(filename)
-	let l:dir =  expand(g:notes_folder)
+function notes#edit(filename)
+     "echomsg fnamemodify(expand(a:filename,'/'),':h')
+     let l:dir =  expand(g:notes_folder)
+     let l:filename = a:filename
+     if(fnamemodify(expand(a:filename,'/'),':h')=="")
 	if !isdirectory(l:dir)
 		exe "silent !mkdir ".l:dir
 	endif
-	execute "cd ".l:dir
-	let l:filename = a:filename
+	"execute "cd ".l:dir	
+	"exe "edit ".l:dir."/".l:filename
+	exe "edit ".l:dir."/".l:filename
+     else
 	exe "edit ".l:filename
- endfunction
+     endif	
+endfunction
 
 " When open the file, cannot set the filetype syntax..
-function! notes#list()
+function notes#list()
 	let l:dir = expand(g:notes_folder)
 	execute ":Explore ".l:dir
 endfunction
 
-function! NavigateNotes(A,L,P)
+function NavigateNotes(A,L,P)
 	 return split(globpath(g:notes_folder, "*"), "\n")
 endfunction
 
 
-function! notes#delete(...)
+function notes#delete(...)
   if(exists('a:1'))
     let note=a:1
     if(expand(g:notes_folder) != fnamemodify(expand(note,'/'),':h'))
@@ -99,7 +107,7 @@ function UpdateBuffer()
 	endif
 endfunction
 
-function! AutoSaveToggle()
+function AutoSaveToggle()
 	if g:auto_save >= 1
 		let g:auto_save = 0
 		echo "AutoSave is OFF"
