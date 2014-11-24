@@ -1,5 +1,5 @@
 " notes.vim -  A vim plugin to take notes easily
-" Mantainer: XXX
+" Mantainer: bxor99
 " Version: 0.01-alpha
 " AutoInstall: notes.vim
 " ====== Enjoy ======
@@ -10,7 +10,6 @@ if exists('g:loaded_notes') || &cp
 endif
 let g:loaded_notes = 0
 "For security reasons..
-
 "if v:version < 702
 "	echomsg 'notes: You need at least Vim 7.2'
 "	finish
@@ -27,44 +26,40 @@ endif
 augroup autosave
 	autocmd!
 	autocmd BufRead,BufNewFile   *.note set filetype=markdown
-	"au BufEnter *   execute ":lcd " . expand("%:p:h")
-	autocmd BufEnter * silent! lcd %:p:h
+	"autocmd BufEnter * silent! lcd %:p:h
 	autocmd BufRead,BufNewFile   *.* syntax on
-	au CursorHold * call UpdateBuffer()
+	au CursorHold * call notes#update_buffer()
 augroup END
 
 
-
-
-command! -complete=customlist,NavigateNotes -nargs=1 Note call notes#edit(<f-args>)
-command! -complete=customlist,notes#cmd_complete NoteList call notes#list()
+command! -complete=customlist,notes#navigate -nargs=1 Note call notes#edit(<f-args>)
+command! -complete=customlist, NoteList call notes#list()
 "command! -complete=customlist,NavigateNotes -nargs=1 NoteDelete :echo 'Removing Note: '.'<f-args>'.' '.(delete(<f-args>) == 0 ? 'Removed' : 'Failed') | bdelete!
-command! -complete=customlist,NavigateNotes -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
-command! AutoSaveToggle :call AutoSaveToggle()
+command! -complete=customlist,notes#navigate -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
+command! AutoSaveToggle :call notes#autosave_toggle()
 
 function notes#edit(filename)
-     "echomsg fnamemodify(expand(a:filename,'/'),':h')
      let l:dir =  expand(g:notes_folder)
      let l:filename = a:filename
      if(fnamemodify(expand(a:filename,'/'),':h')=="")
 	if !isdirectory(l:dir)
 		exe "silent !mkdir ".l:dir
 	endif
-	"execute "cd ".l:dir	
-	"exe "edit ".l:dir."/".l:filename
+	exe "edit ".l:dir."/".l:filename
+     elseif(expand(g:notes_folder) != fnamemodify(expand(a:filename,'/'),':h'))
+	let l:filename = fnamemodify(expand(a:filename, '/'),':t')
 	exe "edit ".l:dir."/".l:filename
      else
 	exe "edit ".l:filename
      endif	
 endfunction
 
-" When open the file, cannot set the filetype syntax..
 function notes#list()
 	let l:dir = expand(g:notes_folder)
 	execute ":Explore ".l:dir
 endfunction
 
-function NavigateNotes(A,L,P)
+function notes#navigate(A,L,P)
 	 return split(globpath(g:notes_folder, "*"), "\n")
 endfunction
 
@@ -96,8 +91,7 @@ function notes#delete(...)
 endfunction
 
 " Autosave for buffered notes 
-
-function UpdateBuffer()
+function notes#update_buffer()
 	if(g:auto_save >= 1 && &filetype=="markdown")
 		let was_modified = &modified
 		silent! wa
@@ -107,7 +101,7 @@ function UpdateBuffer()
 	endif
 endfunction
 
-function AutoSaveToggle()
+function notes#autosave_toggle()
 	if g:auto_save >= 1
 		let g:auto_save = 0
 		echo "AutoSave is OFF"
@@ -116,3 +110,4 @@ function AutoSaveToggle()
 		echo "AutoSave is ON"
 	endif
 endfunction
+
