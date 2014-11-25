@@ -9,6 +9,7 @@ if exists('g:loaded_notes') || &cp
 	finish
 endif
 let g:loaded_notes = 0
+
 "For security reasons..
 "if v:version < 702
 "	echomsg 'notes: You need at least Vim 7.2'
@@ -19,16 +20,19 @@ if !exists('g:notes_folder')
 	let g:notes_folder = "~/.notes"
 endif
 
-if !exists("g:auto_save")
-	let g:auto_save = 0
+if !exists("g:notes_autosave")
+	let g:notes_autosave = 0
+	let g:notes_autosave_time = 30 "seconds
 endif
 
-augroup autosave
+augroup bufferset
 	autocmd!
-	autocmd BufRead,BufNewFile   *.note set filetype=markdown
-	"autocmd BufEnter * silent! lcd %:p:h
+	autocmd BufRead,BufNewFile *.note set filetype=markdown
+	autocmd BufRead,BufNewFile *.note let b:notes_start_time=localtime()
 	autocmd BufRead,BufNewFile   *.* syntax on
-	au CursorHold * call notes#update_buffer()
+	"Autosave settings
+	au CursorHold,BufRead *.note call notes#update_buffer()
+	au BufWritePre *.note let b:notes_start_time=localtime()
 augroup END
 
 
@@ -63,7 +67,6 @@ function notes#navigate(A,L,P)
 	 return split(globpath(g:notes_folder, "*"), "\n")
 endfunction
 
-
 function notes#delete(...)
   if(exists('a:1'))
     let note=a:1
@@ -92,21 +95,25 @@ endfunction
 
 " Autosave for buffered notes 
 function notes#update_buffer()
-	if(g:auto_save >= 1 && &filetype=="markdown")
+	"echomsg "Time elapsed: ".(localtime()-b:notes_start_time) "DEBUG TIME
+	let l:note_time_elapsed=localtime()-b:notes_start_time
+	if(matchstr(expand('%.t'),'\^*.note$')!="" && g:notes_autosave >= 1 
+				\&& l:note_time_elapsed>=g:notes_autosave_time)
 		let was_modified = &modified
 		silent! wa
 		if(was_modified && !&modified)
 			echomsg "(AutoSaved at " . strftime("%H:%M:%S") . ")"
+			let b:notes_start_time=localtime()
 		endif
 	endif
 endfunction
 
 function notes#autosave_toggle()
-	if g:auto_save >= 1
-		let g:auto_save = 0
+	if g:notes_autosave >= 1
+		let g:notes_autosave = 0
 		echo "AutoSave is OFF"
 	else
-		let g:auto_save = 1
+		let g:notes_autosave = 1
 		echo "AutoSave is ON"
 	endif
 endfunction
