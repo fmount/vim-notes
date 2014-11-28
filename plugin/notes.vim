@@ -1,5 +1,5 @@
 " notes.vim -  A vim plugin to take notes easily
-" Mantainer: XXX
+" Mantainer: bxor99
 " Version: 0.01-alpha
 " AutoInstall: notes.vim
 " ====== Enjoy ======
@@ -9,8 +9,8 @@ if exists('g:loaded_notes') || &cp
 	finish
 endif
 let g:loaded_notes = 0
-"For security reasons..
 
+"For security reasons..
 "if v:version < 702
 "	echomsg 'notes: You need at least Vim 7.2'
 "	finish
@@ -20,48 +20,54 @@ if !exists('g:notes_folder')
 	let g:notes_folder = "~/.notes"
 endif
 
-if !exists("g:auto_save")
-	let g:auto_save = 0
+if !exists("g:notes_autosave")
+	let g:notes_autosave = 0
+	let g:notes_autosave_time = 30 "seconds
 endif
 
-augroup autosave
+augroup bufferset
 	autocmd!
-	autocmd BufRead,BufNewFile   *.note set filetype=markdown
+	autocmd BufRead,BufNewFile *.note set filetype=markdown
+	autocmd BufRead,BufNewFile *.note let b:notes_start_time=localtime()
 	autocmd BufRead,BufNewFile   *.* syntax on
-	au CursorHold * call UpdateBuffer()
+	"Autosave settings
+	au CursorHold,BufRead *.note call notes#update_buffer()
+	au BufWritePre *.note let b:notes_start_time=localtime()
 augroup END
 
 
-
-
-command! -complete=customlist,NavigateNotes -nargs=1 Note call notes#edit(<f-args>)
-command! -complete=customlist,notes#cmd_complete NoteList call notes#list()
+command! -complete=customlist,notes#navigate -nargs=1 Note call notes#edit(<f-args>)
+command! -complete=customlist, NoteList call notes#list()
 "command! -complete=customlist,NavigateNotes -nargs=1 NoteDelete :echo 'Removing Note: '.'<f-args>'.' '.(delete(<f-args>) == 0 ? 'Removed' : 'Failed') | bdelete!
-command! -complete=customlist,NavigateNotes -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
-command! AutoSaveToggle :call AutoSaveToggle()
+command! -complete=customlist,notes#navigate -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
+command! AutoSaveToggle :call notes#autosave_toggle()
 
-function! notes#edit(filename)
-	let l:dir =  expand(g:notes_folder)
+function notes#edit(filename)
+     let l:dir =  expand(g:notes_folder)
+     let l:filename = a:filename
+     if(fnamemodify(expand(a:filename,'/'),':h')=="")
 	if !isdirectory(l:dir)
 		exe "silent !mkdir ".l:dir
 	endif
-	execute "cd ".l:dir
-	let l:filename = a:filename
+	exe "edit ".l:dir."/".l:filename
+     elseif(expand(g:notes_folder) != fnamemodify(expand(a:filename,'/'),':h'))
+	let l:filename = fnamemodify(expand(a:filename, '/'),':t')
+	exe "edit ".l:dir."/".l:filename
+     else
 	exe "edit ".l:filename
- endfunction
+     endif	
+endfunction
 
-" When open the file, cannot set the filetype syntax..
-function! notes#list()
+function notes#list()
 	let l:dir = expand(g:notes_folder)
 	execute ":Explore ".l:dir
 endfunction
 
-function! NavigateNotes(A,L,P)
+function notes#navigate(A,L,P)
 	 return split(globpath(g:notes_folder, "*"), "\n")
 endfunction
 
-
-function! notes#delete(...)
+function notes#delete(...)
   if(exists('a:1'))
     let note=a:1
     if(expand(g:notes_folder) != fnamemodify(expand(note,'/'),':h'))
@@ -88,23 +94,27 @@ function! notes#delete(...)
 endfunction
 
 " Autosave for buffered notes 
-
-function UpdateBuffer()
-	if(g:auto_save >= 1 && &filetype=="markdown")
+function notes#update_buffer()
+	"echomsg "Time elapsed: ".(localtime()-b:notes_start_time) "DEBUG TIME
+	let l:note_time_elapsed=localtime()-b:notes_start_time
+	if(matchstr(expand('%.t'),'\^*.note$')!="" && g:notes_autosave >= 1 
+				\&& l:note_time_elapsed>=g:notes_autosave_time)
 		let was_modified = &modified
 		silent! wa
 		if(was_modified && !&modified)
 			echomsg "(AutoSaved at " . strftime("%H:%M:%S") . ")"
+			let b:notes_start_time=localtime()
 		endif
 	endif
 endfunction
 
-function! AutoSaveToggle()
-	if g:auto_save >= 1
-		let g:auto_save = 0
+function notes#autosave_toggle()
+	if g:notes_autosave >= 1
+		let g:notes_autosave = 0
 		echo "AutoSave is OFF"
 	else
-		let g:auto_save = 1
+		let g:notes_autosave = 1
 		echo "AutoSave is ON"
 	endif
 endfunction
+
