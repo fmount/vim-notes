@@ -43,19 +43,32 @@ command! -complete=customlist,notes#navigate -nargs=1 NoteDelete call notes#dele
 command! AutoSaveToggle :call notes#autosave_toggle()
 
 function notes#edit(filename)
-     let l:dir =  expand(g:notes_folder)
-     let l:filename = a:filename
-     if(fnamemodify(expand(a:filename,'/'),':h')=="")
-	if !isdirectory(l:dir)
-		exe "silent !mkdir ".l:dir
+	let l:dir =  expand(g:notes_folder)
+	let l:tmpfilename = a:filename
+
+	"Check for file extention"
+	let l:fileext = matchstr(l:tmpfilename, '\..*$')
+	if (empty(l:fileext))
+		let l:newext = '.note'
+	else
+		let l:newext = ''
 	endif
-	exe "edit ".l:dir."/".l:filename
-     elseif(expand(g:notes_folder) != fnamemodify(expand(a:filename,'/'),':h'))
-	let l:filename = fnamemodify(expand(a:filename, '/'),':t')
-	exe "edit ".l:dir."/".l:filename
-     else
-	exe "edit ".l:filename
-     endif	
+
+	" Create l:dir if not existing
+	if !isdirectory(l:dir)
+		exe "silent !mkdir " . l:dir
+	endif
+
+	" This is used when we don't pass any log
+	if(fnamemodify(expand(a:filename, '/'), ':h') == "")
+		exe "edit " . l:dir . "/" . l:filename . l:newext
+	" This is used when we pass an absolute path
+	elseif(expand(g:notes_folder) != fnamemodify(expand(a:filename,'/'), ':h'))
+		let l:filename = fnamemodify(expand(a:filename, '/'), ':t')
+		exe "edit " . l:dir . "/" . l:filename . l:newext
+	else
+		exe "edit " . l:filename . l:newext
+	endif
 endfunction
 
 function notes#list()
