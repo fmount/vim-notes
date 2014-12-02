@@ -47,7 +47,7 @@ function notes#edit(filename)
 	let l:tmpfilename = a:filename
 
 	"Check for file extention"
-	let l:fileext = matchstr(l:tmpfilename, '\..*$')
+	let l:fileext = matchstr(l:tmpfilename, '\.\w*$')
 
 	if (empty(l:fileext))
 		let l:newext = '.note'
