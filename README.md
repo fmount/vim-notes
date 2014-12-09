@@ -9,7 +9,7 @@ Commands
 ---
 |||
 ----|----
-**:Note** _filename_ | This command create a new Note buffer. This is saved in a new file inside the folder g:notes_folder (set to ~/.notes by default). If no extension is specified the new file will be created with '.note' and it will be processed in the editor using the _markdown_ syntax highlighting.
+**:Note** _filename_ | This command creates a new Note buffer. This is saved in a new file inside the folder g:notes_folder (set to ~/.notes by default). If no extension is specified the new file will be created with '.note' and it will be processed in the editor using the _markdown_ syntax highlighting.
 **:NoteList** | Shows all the notes available inside the folder g:notes_folder
 **:NoteDelete** _filename_ |  Delete a note
 
@@ -30,6 +30,8 @@ ToDo
 ---
 - Autosave
 - Proper README
+- Fast CheckBox
+- Scratch notes
 - Fast Export
 - Synchronization
 
