@@ -23,7 +23,7 @@ endif
 
 if !exists("g:notes_autosave")
 	let g:notes_autosave = 0
-	let g:notes_autosave_time = 30 "seconds
+	let g:notes_autosave_time = 10 "seconds
 endif
 
 augroup bufferset
@@ -32,15 +32,15 @@ augroup bufferset
 	autocmd BufRead,BufNewFile *.note let b:notes_start_time=localtime()
 	autocmd BufRead,BufNewFile   *.* syntax on
 	"Autosave settings
-	"au CursorHold,BufRead *.note call notes#update_buffer()
-	"au BufWritePre *.note let b:notes_start_time=localtime()
+	autocmd CursorHold,BufRead *.note call notes#update_buffer()
+	autocmd BufWritePre *.note let b:notes_start_time = localtime()
 augroup END
 
 
 command! -complete=customlist,notes#navigate -nargs=1 Note call notes#edit(<f-args>)
 command! -complete=customlist, NoteList call notes#list()
 command! -complete=customlist,notes#navigate -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
-command! AutoSaveToggle :call notes#autosave_toggle()
+command! NoteAutoSaveToggle :call notes#autosave_toggle()
 
 function notes#edit(filename)
 	let l:dir =  expand(g:notes_folder)
@@ -126,7 +126,7 @@ function notes#update_buffer()
 
 		"Try to update the buffer if modified
 		let was_modified = &modified
-		silent! wa
+		silent! w
 
 		if(was_modified && !&modified)
 			echomsg "(AutoSaved at " . strftime("%H:%M:%S") . ")"

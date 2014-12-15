@@ -7,11 +7,12 @@ _Working in progress..._
 ________
 Commands
 ---
-| Command | Descri{ption |
+| Command | Description |
 |---|---|
 |**:Note**&nbsp;_filename_      | This command creates a new Note buffer. This is saved in a new file inside the folder g:notes_folder (set to ~/.notes by default). If no extension is specified the new file will be created with '.note' and it will be processed in the editor using the _markdown_ syntax highlighting. |
 |**:NoteList**             | Shows all the notes available inside the folder g:notes_folder |
 |**:NoteDelete**&nbsp;_filename_ </code>|  Delete a note |
+|**:NoteAutoSaveToggle** | Activate/Deactivate automatic save for the current _.note_ buffer |
 
 ______
 Parameters
