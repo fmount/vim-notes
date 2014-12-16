@@ -16,6 +16,42 @@ let g:loaded_notes = 0
 "   echomsg 'notes: You need at least Vim 7.2'
 "   finish
 "endif
+"
+" Create a new item
+nnore (note-todo-new) a[ ]<space>
+inore (note-todo-new) [ ]<space>
+
+" Create a new item below
+nnore (note-todo-below) $o[ ]<space>
+inore (note-todo-below) <Esc>$o[ ]<space>
+
+" Create a new item above
+nnore (note-todo-above) $O[ ]<space>
+inore (note-todo-above) <Esc>$O[ ]<space>
+
+
+" Mark item under cursor as done
+nnore (note-todo-mark-as-done) :s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+inore (note-todo-mark-as-done) <Esc>:s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+
+" Mark as undone
+nnore (note-todo-mark-as-undone) :s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+inore (note-todo-mark-as-undone) <Esc>:s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+
+		""""":s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+		""""":s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+
+nmap <Leader>K note#toggle_checkbox(line('.'))<cr>
+
+function notes#toggle_checkbox(linenr)
+	echomsg "done"
+	if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
+		echomsg "done"
+	elseif (empty(matchstr(getline(a:linenr), '^\s*\[x\].*$')) == 0)
+		echomsg "undone"
+	endif
+	"return substitute(getline(a:linenr), '^\s*\([-+*]\?\s*\).*', '\1', '')
+endfunction
 
 if !exists('g:notes_folder')
 	let g:notes_folder = "~/.notes"
@@ -70,6 +106,18 @@ function notes#edit(filename)
 	else
 		exe "edit " . a:filename . l:newext
 	endif
+
+	" Add todolist mapping
+	nmap <buffer> <Leader>i (note-todo-new)
+	imap <buffer> <Leader>i (note-todo-new)
+	nmap <buffer> <Leader>o (note-todo-below)
+	imap <buffer> <Leader>o (note-todo-below)
+	nmap <buffer> <Leader>O (note-todo-above)
+	imap <buffer> <Leader>O (note-todo-above)
+	nmap <buffer> <Leader>x (note-todo-mark-as-done)
+	imap <buffer> <Leader>x (note-todo-mark-as-done)
+	nmap <buffer> <Leader>X (note-todo-mark-as-undone)
+	imap <buffer> <Leader>X (note-todo-mark-as-undone)
 endfunction
 
 function notes#list()
