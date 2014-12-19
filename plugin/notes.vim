@@ -147,3 +147,106 @@ function notes#autosave_toggle()
 	endif
 endfunction
 
+
+"DEBUG COMMANDS
+command! -nargs=* BLIST call notes#blist_open()
+"SKIP ALL NOTES FILES
+command! -nargs=* NEXT call notes#navig("next",'\^*.note$')
+command! -nargs=* PREVIOUS call notes#navig("previous",'\^*.note$')
+"NAVIGATE YOUR NOTES :D
+command! -nargs=* NNEXT call notes#navig("next",'^\(.*note\)\@!.*$')
+command! -nargs=* PPREVIOUS call notes#navig("previous",'^\(.*note\)\@!.*$')
+
+
+"\^?+(\.note$) [Regex to skip all .note files..]
+"^(?!.*\b\.note\b) [Regex to navigate all .note files..]
+"^\(.*note\)\@!.*$ [Other regex to skip all files and navigate notes]
+
+
+function notes#navig(...)
+
+	"Disabling parameters checking ...
+	"if(!exists('a:1'))
+	"	echomsg "Error evaluating parameter"
+	"	return 
+	"endif
+	
+	"let go = notes#blist_open()
+	
+	let mode = a:1
+	let pattern = a:2
+	
+	let curr = expand('%.p')
+	let num_curr=bufnr(curr)
+	
+	if(mode=="next")
+		if(num_curr==bufnr('$'))
+			"It's the end, so we can start from the first :D
+			let jump = notes#checkNextbuffer(1,mode,pattern)
+			execute "buffer! " . bufnr(jump)
+		else
+			let jump = notes#checkNextbuffer(num_curr+1,mode,pattern)
+			execute "buffer! " . bufnr(jump)
+		endif
+	else "go previous buffers
+		if(num_curr==1)
+			let jump = notes#checkNextbuffer(bufnr('$'),mode,pattern)
+			execute "buffer " . bufnr(jump)
+		else
+			let jump = notes#checkNextbuffer(num_curr-1,mode,pattern)
+			execute "buffer " . bufnr(jump)
+		endif
+	endif
+
+endfunction
+
+
+function notes#checkNextbuffer(num,mode,pattern)
+	
+	echomsg "BufferList len: " . bufnr('$')
+	echomsg "Evaluate num: " . a:num
+	
+	let l:filename = fnamemodify(expand(bufname(a:num), '/'), ':t')
+	echomsg "The next buffer is " . l:filename
+
+	" If Jump pattern is match or No Name buffer skip it and evaluate the next one..
+	if(matchstr(l:filename,a:pattern)!="" || bufname(a:num) == "")
+		"Select direction
+		if(a:mode=="next")
+			"Tail is reached => Restart from the first buffer
+			if(a:num+1 > bufnr('$'))
+				echomsg "Start from the first"
+				return notes#checkNextbuffer(1,a:mode,a:pattern)
+			else
+				echomsg "Go Ahead"
+				return notes#checkNextbuffer(a:num+1,a:mode,a:pattern)
+			endif
+		else
+			"Head is reached => Restart from the last buffer
+			if(a:num-1 < 0)
+				"Go back from the last
+				echomsg "Go back from the last"
+				return notes#checkNextbuffer(bufnr('$'),a:mode,a:pattern)
+			else
+				echomsg "Go Back"
+				return notes#checkNextbuffer(a:num-1,a:mode,a:pattern)
+			endif
+		
+		endif
+	else
+		echomsg "I got it!"
+		return a:num
+	endif
+endfunction
+
+function notes#blist_open()
+	let all = range(1, bufnr('$'))
+	let res = []
+	for b in all
+		if buflisted(b)
+		    call add(res, bufname(b))
+	    endif
+	endfor
+	"echo res
+	return res
+endfunction
