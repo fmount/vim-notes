@@ -13,8 +13,8 @@ let g:loaded_notes = 0
 
 "For security reasons..
 "if v:version < 702
-"   echomsg 'notes: You need at least Vim 7.2'
-"   finish
+"	echomsg 'notes: You need at least Vim 7.2'
+"	finish
 "endif
 
 if !exists('g:notes_folder')
@@ -26,11 +26,29 @@ if !exists("g:notes_autosave")
 	let g:notes_autosave_time = 10 "seconds
 endif
 
+
+" window handling
+
+if !exists('g:notes_win_autohide')
+	let g:notes_win_autohide = &hidden
+endif
+
+if !exists('g:notes_win_height')
+	let g:notes_win_height = 0.5
+endif
+if !exists('g:notes_win_top')
+	let g:notes_win_top = 1
+endif
+
+if !exists('g:notes_winnr')
+	let g:notes_winnr = -1
+endif
+
 augroup bufferset
 	autocmd!
 	autocmd BufRead,BufNewFile *.note set filetype=markdown
 	autocmd BufRead,BufNewFile *.note let b:notes_start_time=localtime()
-	autocmd BufRead,BufNewFile   *.* syntax on
+	autocmd BufRead,BufNewFile	 *.* syntax on
 	"Autosave settings
 	autocmd CursorHold,BufRead *.note call notes#update_buffer()
 	autocmd BufWritePre *.note let b:notes_start_time = localtime()
@@ -122,7 +140,7 @@ function notes#update_buffer()
 	" check for the time elapsed, the value of the autosave variable and
 	" the current file type (through the .note extension)
 	if(matchstr(expand('%.t'),'\^*.note$') != "" && g:notes_autosave >= 1
-                \&& l:note_time_elapsed >= g:notes_autosave_time)
+				\&& l:note_time_elapsed >= g:notes_autosave_time)
 
 		"Try to update the buffer if modified
 		let was_modified = &modified
@@ -154,31 +172,37 @@ command! -nargs=* BLIST call notes#blist_open()
 command! -nargs=* NEXT call notes#navig("next",'\^*.note$')
 command! -nargs=* PREVIOUS call notes#navig("previous",'\^*.note$')
 "NAVIGATE YOUR NOTES :D
-command! -nargs=* NNEXT call notes#navig("next",'^\(.*note\)\@!.*$')
-command! -nargs=* PPREVIOUS call notes#navig("previous",'^\(.*note\)\@!.*$')
+command! -nargs=* NNEXT call notes#navig("next",'^\(.*note$\)\@!.*$')
+command! -nargs=* PPREVIOUS call notes#navig("previous",'^\(.*note$\)\@!.*$')
 
 
-"\^?+(\.note$) [Regex to skip all .note files..]
-"^(?!.*\b\.note\b) [Regex to navigate all .note files..]
-"^\(.*note\)\@!.*$ [Other regex to skip all files and navigate notes]
+"ONLY FOR DEBUG ....FIX WINDOW NUMBER
+augroup window_handling
+	autocmd WinEnter * if winnr() == 2 | nnoremap <C-N> :NNEXT <CR> | endif
+	autocmd WinEnter * if winnr() == 2 | nnoremap <C-P> :PPREVIOUS <CR> | endif
+	
+	autocmd WinLeave * if winnr() == 2 | nnoremap <C-N> :bnext! <CR> | endif
+	autocmd WinLeave * if winnr() == 2 | nnoremap <C-P> :bprevious! <CR> | endif
+augroup END
 
 
 function notes#navig(...)
 
-	"Disabling parameters checking ...
-	"if(!exists('a:1'))
-	"	echomsg "Error evaluating parameter"
-	"	return 
-	"endif
-	
-	"let go = notes#blist_open()
+	if(!exists('a:1') || !exists('a:2'))
+		echomsg "Error evaluating parameters"
+		return 
+	endif
 	
 	let mode = a:1
 	let pattern = a:2
 	
-	let curr = expand('%.p')
-	let num_curr=bufnr(curr)
+	"let curr = expand('%.p')
+	let num_curr=bufnr(expand('%.p'))
 	
+	if(bufnr('$')<=1)
+		return
+	endif
+
 	if(mode=="next")
 		if(num_curr==bufnr('$'))
 			"It's the end, so we can start from the first :D
@@ -197,7 +221,6 @@ function notes#navig(...)
 			execute "buffer " . bufnr(jump)
 		endif
 	endif
-
 endfunction
 
 
@@ -239,14 +262,162 @@ function notes#checkNextbuffer(num,mode,pattern)
 	endif
 endfunction
 
-function notes#blist_open()
+
+"Utility local functions
+
+function s:blist_open()
 	let all = range(1, bufnr('$'))
 	let res = []
 	for b in all
 		if buflisted(b)
-		    call add(res, bufname(b))
-	    endif
+			call add(res, bufname(b))
+		endif
 	endfor
 	"echo res
 	return res
+endfunction
+
+
+function! s:GetBufferList()
+	redir =>buflist
+	silent! ls
+	redir END
+	return buflist
+endfunction
+
+"Get the first .note buffer available
+function s:Get_fbuf()
+	let blist = s:blist_open()
+	for bufitem in blist
+		if(matchstr(fnamemodify(expand(bufitem, '/'), ':t'),'\^*.note$')!="")
+			echomsg "RETURN NOTE: " . bufnr(bufitem)
+			return bufnr(bufitem)
+		endif
+	endfor
+	return -1
+endfunction
+
+
+function! s:open_window(position,note)
+
+	let scr_bufnum = bufnr(a:note)
+	
+	"Check if the note exist in the main window
+	if(scr_bufnum == -1 || bufnr('$') == 1)
+		
+		"Use the existing buffer if it is a [No Name] one
+		call notes#edit(a:note)
+
+		if(g:notes_winnr == -1)
+			"open a new window and move to it
+			execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
+			execute 'wincmd w'
+			setlocal winfixheight
+			let g:notes_winnr = winnr()
+		else
+			"call notes#edit(a:note)
+			"Window exist, so i can simple move to it
+			execute g:notes_winnr . 'wincmd w'
+		endif
+	else
+		"Note exist: Open it in a new window if necessary
+		if(g:notes_winnr == -1)
+			execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
+			let g:notes_winnr = winnr()
+			execute g:notes_winnr . 'wincmd w'
+		else
+			call notes#edit(a:note)
+			execute g:notes_winnr . 'wincmd w'
+			"return
+		endif
+	endif
+endfunction
+
+function! s:close_window(force)
+	" close scratch window if it is the last window open, or if force
+	if a:force
+		let prev_bufnr = bufnr('#')
+		close
+		execute bufwinnr(prev_bufnr) . 'wincmd w'
+	elseif winbufnr(2) ==# -1
+		if tabpagenr('$') ==# 1
+			bdelete
+			quit
+		else
+			close
+		endif
+	endif
+endfunction
+
+function! s:resolve_height(height)
+	" if g:notes_win_height is an int, return that number, else it is a float
+	" interpret it as a fraction of the screen height and return the
+	" corresponding number of lines
+	if has('float') && type(a:height) ==# 5 " type number for float
+		let abs_height = a:height * winheight(0)
+		return float2nr(abs_height)
+	else
+		return a:height
+	endif
+endfunction
+
+
+" Public Window handling functions
+
+command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
+command! -complete=customlist,notes#navigate -nargs=0 ScratchOp call notes#open(-1,-1)
+command! -bang -nargs=0 ScratchClose call notes#close(0)
+
+
+function notes#open(reset,note)
+	
+	" sanity check and open a note buffer in a new window
+	
+	if bufname('%') ==# '[Command Line]'
+		echoerr 'Unable to open a note buffer from command line window.'
+		return
+	endif
+	
+	if bufnr('$') == 1
+		echomsg 'No notes to open in a new window'
+		return
+	endif
+	
+	let position = g:notes_win_top ? 'topleft ' : 'botright '
+	
+	if(a:note == -1)
+		echomsg "There is no .note file to open, so we open a simple window"
+		let bst = s:Get_fbuf()
+		echomsg "EVALUATE: " . bst
+		if(bst != -1)
+			echomsg "Open the bst"
+			call s:open_window(position,bufname(bst))
+		else
+			echomsg "Open the last buffer"
+			call s:open_window(position,bufname(bufnr('$')))
+		endif
+		return
+	endif
+	
+	if(matchstr(a:note,'\^*.note$') != "")
+		call s:open_window(position,a:note)
+		if a:reset
+			silent execute '%d _'
+		else
+			silent execute 'normal! G$'
+		endif
+	else
+		echomsg "Provide a .note file type!"
+	endif
+endfunction
+
+function notes#close(reset)
+	if(g:notes_winnr == -1)
+		echomsg "No window opened"
+		return
+	else
+		echomsg "Closing window"
+		execute 'close ' . g:notes_winnr
+		let g:notes_winnr = -1
+	endif
 endfunction
