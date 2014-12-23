@@ -315,20 +315,20 @@ function! s:open_window(position,note)
 			setlocal winfixheight
 			let g:notes_winnr = winnr()
 		else
-			"call notes#edit(a:note)
+			call notes#edit(a:note)
 			"Window exist, so i can simple move to it
 			execute g:notes_winnr . 'wincmd w'
 		endif
 	else
 		"Note exist: Open it in a new window if necessary
 		if(g:notes_winnr == -1)
+			call notes#edit(a:note)
 			execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
 			let g:notes_winnr = winnr()
 			execute g:notes_winnr . 'wincmd w'
 		else
 			call notes#edit(a:note)
 			execute g:notes_winnr . 'wincmd w'
-			"return
 		endif
 	endif
 endfunction
@@ -378,7 +378,7 @@ function notes#open(reset,note)
 		return
 	endif
 	
-	if bufnr('$') == 1
+	if bufnr('$') == 1 && a:note == -1
 		echomsg 'No notes to open in a new window'
 		return
 	endif
