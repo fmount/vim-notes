@@ -30,28 +30,22 @@ nnore (note-new-cbox-above) $O[ ]<space>
 inore (note-new-cbox-above) <Esc>$O[ ]<space>
 
 
-" Mark item under cursor as done
-nnore (note-mark-cbox-done) :s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
-inore (note-mark-cbox-done) <Esc>:s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+" Mark item under cursor as done ** TO REMOVE ? **
+"nnore (note-mark-cbox-done) :s/^\s*\[\s\]/\1[x]<cr>
+"inore (note-mark-cbox-done) <Esc>:s/^\s*\[\s\]/\1[x]<cr>
 
-" Mark as undone
-nnore (note-mark-cbox-undone) :s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
-inore (note-mark-cbox-undone) <Esc>:s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+" Mark as undone ** TO REMOVE ? **
+"nnore (note-mark-cbox-undone) :s/^\s*\[x\]/\1[ ]<cr>
+"inore (note-mark-cbox-undone) <Esc>:s/^\s*\[x\]/\1[ ]<cr>
 
-		""""":s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
-		""""":s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
 
-"nmap <Leader>K note#toggle_checkbox(line('.'))<cr>
-
-"function notes#toggle_checkbox(linenr)
-	"echomsg "done"
-	"if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
-		"echomsg "done"
-	"elseif (empty(matchstr(getline(a:linenr), '^\s*\[x\].*$')) == 0)
-		"echomsg "undone"
-	"endif
-	""return substitute(getline(a:linenr), '^\s*\([-+*]\?\s*\).*', '\1', '')
-"endfunction
+function notes#toggle_checkbox(linenr)
+	if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
+		:s/^\s*\[\s\]/\1[x]
+	elseif (empty(matchstr(getline(a:linenr), '^\s*\[x\].*$')) == 0)
+		:s/^\s*\[x\]/\1[ ]
+	endif
+endfunction
 
 if !exists('g:notes_folder')
 	let g:notes_folder = "~/.notes"
@@ -107,17 +101,22 @@ function notes#edit(filename)
 		exe "edit " . a:filename . l:newext
 	endif
 
-	" Add todolist mapping
+	" Add checkbox creating/marking key maps
 	nmap <buffer> <Leader>i (note-new-cbox-inline)
 	imap <buffer> <Leader>i (note-new-cbox-inline)
 	nmap <buffer> <Leader>o (note-new-cbox-below)
 	imap <buffer> <Leader>o (note-new-cbox-below)
 	nmap <buffer> <Leader>O (note-new-cbox-above)
 	imap <buffer> <Leader>O (note-new-cbox-above)
-	nmap <buffer> <Leader>x (note-mark-cbox-done)
-	imap <buffer> <Leader>x (note-mark-cbox-done)
-	nmap <buffer> <Leader>X (note-mark-cbox-undone)
-	imap <buffer> <Leader>X (note-mark-cbox-undone)
+
+	" TO REMOVE ?? Do we need these functions? I don't think so after the
+	" working toggle function
+	"nmap <buffer> <Leader>x (note-mark-cbox-done)
+	"imap <buffer> <Leader>x (note-mark-cbox-done)
+	"nmap <buffer> <Leader>X (note-mark-cbox-undone)
+	"imap <buffer> <Leader>X (note-mark-cbox-undone)
+
+	nmap <buffer> <Leader>x :call notes#toggle_checkbox(line('.'))<cr>
 endfunction
 
 function notes#list()
