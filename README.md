@@ -4,7 +4,7 @@ Vim-Notes
 _Yet another note plugin for VIM_
 
 _Working in progress..._
-________
+______
 Commands
 ---
 | Command | Description |
@@ -22,14 +22,25 @@ Parameters
 |g:notes_folder| ~/.notes   | Folder containing the notes |
 |g:notes_autosave| 0        | Enable/Disable the autosave of the notes |
 |g:notes_autosave_time| 30  | Defines the minimum interval between 2 successive automatic saves |
-________
+______
 
+
+Editing key mapping
+---
+|Combination | Modes   | Name function | Description |
+|------------| :-----: | ------------- | ----------- |
+|<leader> + i| I / N   | note-new-cbox-inline | Create a new checkbox inline |
+|<leader> + o| I / N   | note-new-cbox-below  | Create a new checkbox in the line below the current one|
+|<leader> + O| I / N   | note-new-cbox-above | Create a new checkbox in the line above the current one|
+|<leader> + x|  N      | notes#toggle_checkbox | Toggle the state of the checkbox between done and undone ([x]/[ ])|
+
+______
 
 ToDo
 ---
 - Autosave
 - Proper README
-- Fast CheckBox
+- ~~Fast CheckBox~~
 - Scratch notes
 - Fast Export
 - Synchronization
