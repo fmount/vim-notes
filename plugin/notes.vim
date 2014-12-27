@@ -18,40 +18,40 @@ let g:loaded_notes = 0
 "endif
 "
 " Create a new item
-nnore (note-todo-new) a[ ]<space>
-inore (note-todo-new) [ ]<space>
+nnore (note-new-cbox-inline) a[ ]<space>
+inore (note-new-cbox-inline) [ ]<space>
 
 " Create a new item below
-nnore (note-todo-below) $o[ ]<space>
-inore (note-todo-below) <Esc>$o[ ]<space>
+nnore (note-new-cbox-below) $o[ ]<space>
+inore (note-new-cbox-below) <Esc>$o[ ]<space>
 
 " Create a new item above
-nnore (note-todo-above) $O[ ]<space>
-inore (note-todo-above) <Esc>$O[ ]<space>
+nnore (note-new-cbox-above) $O[ ]<space>
+inore (note-new-cbox-above) <Esc>$O[ ]<space>
 
 
 " Mark item under cursor as done
-nnore (note-todo-mark-as-done) :s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
-inore (note-todo-mark-as-done) <Esc>:s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+nnore (note-mark-cbox-done) :s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
+inore (note-mark-cbox-done) <Esc>:s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
 
 " Mark as undone
-nnore (note-todo-mark-as-undone) :s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
-inore (note-todo-mark-as-undone) <Esc>:s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+nnore (note-mark-cbox-undone) :s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
+inore (note-mark-cbox-undone) <Esc>:s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
 
 		""""":s/^\(\s*[-+*]\?\s*\)\[ \]/\1[x]/<cr>
 		""""":s/^\(\s*[-+*]\?\s*\)\[x\]/\1[ ]/<cr>
 
-nmap <Leader>K note#toggle_checkbox(line('.'))<cr>
+"nmap <Leader>K note#toggle_checkbox(line('.'))<cr>
 
-function notes#toggle_checkbox(linenr)
-	echomsg "done"
-	if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
-		echomsg "done"
-	elseif (empty(matchstr(getline(a:linenr), '^\s*\[x\].*$')) == 0)
-		echomsg "undone"
-	endif
-	"return substitute(getline(a:linenr), '^\s*\([-+*]\?\s*\).*', '\1', '')
-endfunction
+"function notes#toggle_checkbox(linenr)
+	"echomsg "done"
+	"if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
+		"echomsg "done"
+	"elseif (empty(matchstr(getline(a:linenr), '^\s*\[x\].*$')) == 0)
+		"echomsg "undone"
+	"endif
+	""return substitute(getline(a:linenr), '^\s*\([-+*]\?\s*\).*', '\1', '')
+"endfunction
 
 if !exists('g:notes_folder')
 	let g:notes_folder = "~/.notes"
@@ -108,16 +108,16 @@ function notes#edit(filename)
 	endif
 
 	" Add todolist mapping
-	nmap <buffer> <Leader>i (note-todo-new)
-	imap <buffer> <Leader>i (note-todo-new)
-	nmap <buffer> <Leader>o (note-todo-below)
-	imap <buffer> <Leader>o (note-todo-below)
-	nmap <buffer> <Leader>O (note-todo-above)
-	imap <buffer> <Leader>O (note-todo-above)
-	nmap <buffer> <Leader>x (note-todo-mark-as-done)
-	imap <buffer> <Leader>x (note-todo-mark-as-done)
-	nmap <buffer> <Leader>X (note-todo-mark-as-undone)
-	imap <buffer> <Leader>X (note-todo-mark-as-undone)
+	nmap <buffer> <Leader>i (note-new-cbox-inline)
+	imap <buffer> <Leader>i (note-new-cbox-inline)
+	nmap <buffer> <Leader>o (note-new-cbox-below)
+	imap <buffer> <Leader>o (note-new-cbox-below)
+	nmap <buffer> <Leader>O (note-new-cbox-above)
+	imap <buffer> <Leader>O (note-new-cbox-above)
+	nmap <buffer> <Leader>x (note-mark-cbox-done)
+	imap <buffer> <Leader>x (note-mark-cbox-done)
+	nmap <buffer> <Leader>X (note-mark-cbox-undone)
+	imap <buffer> <Leader>X (note-mark-cbox-undone)
 endfunction
 
 function notes#list()
