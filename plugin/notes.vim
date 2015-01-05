@@ -29,16 +29,6 @@ inore (note-new-cbox-below) <Esc>$o[ ]<space>
 nnore (note-new-cbox-above) $O[ ]<space>
 inore (note-new-cbox-above) <Esc>$O[ ]<space>
 
-
-" Mark item under cursor as done ** TO REMOVE ? **
-"nnore (note-mark-cbox-done) :s/^\s*\[\s\]/\1[x]<cr>
-"inore (note-mark-cbox-done) <Esc>:s/^\s*\[\s\]/\1[x]<cr>
-
-" Mark as undone ** TO REMOVE ? **
-"nnore (note-mark-cbox-undone) :s/^\s*\[x\]/\1[ ]<cr>
-"inore (note-mark-cbox-undone) <Esc>:s/^\s*\[x\]/\1[ ]<cr>
-
-
 function notes#toggle_checkbox(linenr)
 	if (empty(matchstr(getline(a:linenr), '^\s*\[\s\].*$')) == 0)
 		:s/^\s*\[\s\]/\1[x]
@@ -108,13 +98,6 @@ function notes#edit(filename)
 	imap <buffer> <Leader>o (note-new-cbox-below)
 	nmap <buffer> <Leader>O (note-new-cbox-above)
 	imap <buffer> <Leader>O (note-new-cbox-above)
-
-	" TO REMOVE ?? Do we need these functions? I don't think so after the
-	" working toggle function
-	"nmap <buffer> <Leader>x (note-mark-cbox-done)
-	"imap <buffer> <Leader>x (note-mark-cbox-done)
-	"nmap <buffer> <Leader>X (note-mark-cbox-undone)
-	"imap <buffer> <Leader>X (note-mark-cbox-undone)
 
 	nmap <buffer> <Leader>x :call notes#toggle_checkbox(line('.'))<cr>
 endfunction
