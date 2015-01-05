@@ -29,10 +29,10 @@ Editing key mapping
 ---
 |Combination | Modes   | Name function | Description |
 |------------| :-----: | ------------- | ----------- |
-|<leader> + i| I / N   | note-new-cbox-inline | Create a new checkbox inline |
-|<leader> + o| I / N   | note-new-cbox-below  | Create a new checkbox in the line below the current one|
-|<leader> + O| I / N   | note-new-cbox-above | Create a new checkbox in the line above the current one|
-|<leader> + x|  N      | notes#toggle_checkbox | Toggle the state of the checkbox between done and undone ([x]/[ ])|
+|&lt;_leader_&gt; + i| I / N   | note-new-cbox-inline | Create a new checkbox inline |
+|&lt;_leader_&gt; + o| I / N   | note-new-cbox-below  | Create a new checkbox in the line below the current one|
+|&lt;_leader_&gt; + O| I / N   | note-new-cbox-above | Create a new checkbox in the line above the current one|
+|&lt;_leader_&gt; + x|  N      | notes#toggle_checkbox | Toggle the state of the checkbox between done and undone ([x]/[ ])|
 
 ______
 
