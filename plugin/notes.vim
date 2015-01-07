@@ -18,8 +18,8 @@ let g:loaded_notes = 0
 "endif
 "
 " Create a new item
-nnore (note-new-cbox-inline) a[ ]<space>
-inore (note-new-cbox-inline) [ ]<space>
+nnore (note-new-cbox-inline) I[ ]<space>
+inore (note-new-cbox-inline) <Esc>I[ ]<space>
 
 " Create a new item below
 nnore (note-new-cbox-below) $o[ ]<space>
