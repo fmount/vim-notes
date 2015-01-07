@@ -18,7 +18,7 @@ ______
 Parameters
 ---
 | Parameter | Default Value | Description |
-|-----------|---------------|-------------|
+|-----------|:-------------:|-------------|
 |g:notes_folder| ~/.notes   | Folder containing the notes |
 |g:notes_autosave| 0        | Enable/Disable the autosave of the notes |
 |g:notes_autosave_time| 30  | Defines the minimum interval between 2 successive automatic saves |
@@ -28,7 +28,7 @@ ______
 Editing key mapping
 ---
 |Combination | Modes   | Name function | Description |
-|------------| :-----: | ------------- | ----------- |
+|------------| :-----: | :-----------: | ----------- |
 |&lt;_leader_&gt; + i| I / N   | note-new-cbox-inline | Create a new checkbox inline |
 |&lt;_leader_&gt; + o| I / N   | note-new-cbox-below  | Create a new checkbox in the line below the current one|
 |&lt;_leader_&gt; + O| I / N   | note-new-cbox-above | Create a new checkbox in the line above the current one|
