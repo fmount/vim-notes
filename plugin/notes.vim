@@ -84,9 +84,9 @@ function notes#edit(filename)
 	" This is used when we pass an absolute path
 	elseif(expand(g:notes_folder) != fnamemodify(expand(a:filename, '/'), ':h'))
 		let l:filename = fnamemodify(expand(a:filename, '/'), ':t')
-		exe "edit " . l:dir . "/" . l:filename . l:newext
+		exe "edit! " . l:dir . "/" . l:filename . l:newext
 	else
-		exe "edit " . a:filename . l:newext
+		exe "edit! " . a:filename . l:newext
 	endif
 endfunction
 
@@ -298,10 +298,15 @@ function s:Get_fbuf()
 endfunction
 
 
-function! s:open_window(position,note)
 
+
+command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
+command! -complete=customlist,notes#navigate -nargs=0 ScratchOpen call notes#open(-1,-1)
+command! -bang -nargs=0 ScratchClose call notes#close(0)
+
+function! s:open_window(position,note)
 	let scr_bufnum = bufnr(a:note)
-	
+	let curr_buf = bufname('%')
 	"Check if the note exist in the main window
 	if(scr_bufnum == -1 || bufnr('$') == 1)
 		
@@ -311,11 +316,13 @@ function! s:open_window(position,note)
 		if(g:notes_winnr == -1)
 			"open a new window and move to it
 			execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
+			execute 'buffer ' . curr_buf
 			execute 'wincmd w'
 			setlocal winfixheight
 			let g:notes_winnr = winnr()
 		else
 			call notes#edit(a:note)
+			execute 'buffer ' . curr_buf
 			"Window exist, so i can simple move to it
 			execute g:notes_winnr . 'wincmd w'
 		endif
@@ -325,9 +332,11 @@ function! s:open_window(position,note)
 			call notes#edit(a:note)
 			execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
 			let g:notes_winnr = winnr()
+			execute 'buffer ' . curr_buf
 			execute g:notes_winnr . 'wincmd w'
 		else
 			call notes#edit(a:note)
+			execute 'buffer ' . curr_buf
 			execute g:notes_winnr . 'wincmd w'
 		endif
 	endif
@@ -364,9 +373,6 @@ endfunction
 
 " Public Window handling functions
 
-command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
-command! -complete=customlist,notes#navigate -nargs=0 ScratchOp call notes#open(-1,-1)
-command! -bang -nargs=0 ScratchClose call notes#close(0)
 
 
 function notes#open(reset,note)
