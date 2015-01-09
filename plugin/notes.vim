@@ -42,6 +42,7 @@ endif
 
 if !exists('g:notes_winnr')
 	let g:notes_winnr = -1
+	let g:notes_winid = "none"
 endif
 
 augroup bufferset
@@ -297,47 +298,65 @@ function s:Get_fbuf()
 	return -1
 endfunction
 
-
-
+" Find a window by the assigned identifier
+function s:FindWinID(id)
+	for tabnr in range(1, tabpagenr('$'))
+		for winnr in range(1, tabpagewinnr(tabnr, '$'))
+			if gettabwinvar(tabnr, winnr, 'id') is a:id
+				return [tabnr, winnr]
+			endif
+		endfor
+	endfor
+	return [-1, -1]
+endfunction
 
 command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
 command! -complete=customlist,notes#navigate -nargs=0 ScratchOpen call notes#open(-1,-1)
 command! -bang -nargs=0 ScratchClose call notes#close(0)
 
 function! s:open_window(position,note)
+
 	let scr_bufnum = bufnr(a:note)
 	let curr_buf = bufname('%')
+	
+	"Select the notes window by id
+	let [tabnr, winnr]=s:FindWinID('note')
+	let g:notes_winnr = winnr
+	
 	"Check if the note exist in the main window
 	if(scr_bufnum == -1 || bufnr('$') == 1)
-		
 		"Use the existing buffer if it is a [No Name] one
 		call notes#edit(a:note)
-
 		if(g:notes_winnr == -1)
 			"open a new window and move to it
 			execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
 			execute 'buffer ' . curr_buf
 			execute 'wincmd w'
 			setlocal winfixheight
-			let g:notes_winnr = winnr()
+			"set an id to the new window
+			let w:id = "note"
 		else
 			call notes#edit(a:note)
 			execute 'buffer ' . curr_buf
 			"Window exist, so i can simple move to it
-			execute g:notes_winnr . 'wincmd w'
+			let [tabnr, winnr]=s:FindWinID('note')
+			execute winnr."wincmd w"
 		endif
 	else
 		"Note exist: Open it in a new window if necessary
 		if(g:notes_winnr == -1)
 			call notes#edit(a:note)
 			execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
-			let g:notes_winnr = winnr()
+			"set an id to the new window
 			execute 'buffer ' . curr_buf
-			execute g:notes_winnr . 'wincmd w'
+			execute 'wincmd w'
+			let w:id = "note"
 		else
 			call notes#edit(a:note)
 			execute 'buffer ' . curr_buf
-			execute g:notes_winnr . 'wincmd w'
+			let [tabnr, winnr]=s:FindWinID('note')
+			execute winnr."wincmd w"
+			execute 'buffer ' . scr_bufnum
 		endif
 	endif
 endfunction
@@ -373,8 +392,6 @@ endfunction
 
 " Public Window handling functions
 
-
-
 function notes#open(reset,note)
 	
 	" sanity check and open a note buffer in a new window
@@ -394,12 +411,11 @@ function notes#open(reset,note)
 	if(a:note == -1)
 		echomsg "There is no .note file to open, so we open a simple window"
 		let bst = s:Get_fbuf()
-		echomsg "EVALUATE: " . bst
 		if(bst != -1)
-			echomsg "Open the bst"
+			"echomsg "Open the bst"
 			call s:open_window(position,bufname(bst))
 		else
-			echomsg "Open the last buffer"
+			"echomsg "Open the last buffer"
 			call s:open_window(position,bufname(bufnr('$')))
 		endif
 		return
@@ -418,11 +434,16 @@ function notes#open(reset,note)
 endfunction
 
 function notes#close(reset)
+	
+	"Select the notes window by id
+	let [tabnr, winnr]=s:FindWinID('note')
+	let g:notes_winnr = winnr
+	
 	if(g:notes_winnr == -1)
 		echomsg "No window opened"
 		return
 	else
-		echomsg "Closing window"
+		echomsg "Closing window " . g:notes_winnr
 		execute 'close ' . g:notes_winnr
 		let g:notes_winnr = -1
 	endif
