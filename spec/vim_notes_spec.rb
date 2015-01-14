@@ -4,7 +4,7 @@ require 'spec_helper'
 describe "notes#edit" do
   it "returns a new Note if you open a new buffer" do
     vim.command('call notes#edit("test")')
-    vim.edit "test.note"
+    #vim.edit "test.note"
     vim.insert("This is a simple test note")
     vim.write
   end
