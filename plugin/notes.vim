@@ -179,11 +179,10 @@ command! -nargs=* PPREVIOUS call notes#navig("previous",'^\(.*note$\)\@!.*$')
 
 "ONLY FOR DEBUG ....FIX WINDOW NUMBER
 augroup window_handling
-	autocmd WinEnter * if winnr() == 2 | nnoremap <C-N> :NNEXT <CR> | endif
-	autocmd WinEnter * if winnr() == 2 | nnoremap <C-P> :PPREVIOUS <CR> | endif
-	
-	autocmd WinLeave * if winnr() == 2 | nnoremap <C-N> :bnext! <CR> | endif
-	autocmd WinLeave * if winnr() == 2 | nnoremap <C-P> :bprevious! <CR> | endif
+	autocmd WinEnter * if winnr() == s:FindWinNumID('note') | nnoremap <C-N> :NNEXT <CR> | endif
+	autocmd WinEnter * if winnr() == s:FindWinNumID('note')  | nnoremap <C-P> :PPREVIOUS <CR> | endif
+	autocmd WinLeave * if winnr() == s:FindWinNumID('note') | nnoremap <C-N> :bnext! <CR> | endif
+	autocmd WinLeave * if winnr() == s:FindWinNumID('note')  | nnoremap <C-P> :bprevious! <CR> | endif
 augroup END
 
 
@@ -310,6 +309,17 @@ function s:FindWinID(id)
 	return [-1, -1]
 endfunction
 
+function s:FindWinNumID(id)
+	for tabnr in range(1, tabpagenr('$'))
+		for winnr in range(1, tabpagewinnr(tabnr, '$'))
+			if gettabwinvar(tabnr, winnr, 'id') is a:id
+				return  winnr
+			endif
+		endfor
+	endfor
+	return -1
+endfunction
+
 command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
 command! -complete=customlist,notes#navigate -nargs=0 ScratchOpen call notes#open(-1,-1)
 command! -bang -nargs=0 ScratchClose call notes#close(0)
@@ -331,31 +341,28 @@ function! s:open_window(position,note)
 
 		if(g:notes_winnr == -1)
 			"open a new window and move to it
-			"execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
 			let scr_bufnum = bufnr(a:note)
-			"execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
 			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w' 
-			"set an id to the new window
-			let w:id = "note"
 		else
-			"execute 'buffer ' . curr_buf
-			"Window exist, so i can simple move to it
-			let [tabnr, winnr]=s:FindWinID('note')
 			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	else
 		"Note exist: Open it in a new window if necessary
 		call notes#edit(a:note)
 		if(g:notes_winnr == -1)
-			"execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
 			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w'
-			"set an id to the new window
-			let w:id = "note"
 		else
 			let [tabnr, winnr]=s:FindWinID('note')
 			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	endif
+	
+	"set an id to the new window
+	let w:id = 'note'
+
+	"remap navigation for the notes window
+	if winnr() == s:FindWinNumID('note') | nnoremap <C-N> :NNEXT <CR> | endif
+	if winnr() == s:FindWinNumID('note')  | nnoremap <C-P> :PPREVIOUS <CR> | endif
 endfunction
 
 function! s:close_window(force)
@@ -441,4 +448,7 @@ function notes#close(reset)
 		execute 'close ' . g:notes_winnr
 		let g:notes_winnr = -1
 	endif
+
+	nnoremap <C-N> :bnext! <CR>
+	nnoremap <C-P> :bprevious! <CR>
 endfunction
