@@ -327,36 +327,33 @@ function! s:open_window(position,note)
 	if(scr_bufnum == -1 || bufnr('$') == 1)
 		"Use the existing buffer if it is a [No Name] one
 		call notes#edit(a:note)
+		let scr_bufnum = bufnr(a:note)
+
 		if(g:notes_winnr == -1)
 			"open a new window and move to it
-			execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
-			execute 'buffer ' . curr_buf
-			execute 'wincmd w'
-			setlocal winfixheight
+			"execute a:position . s:resolve_height(g:notes_win_height) . 'new ' . a:note
+			let scr_bufnum = bufnr(a:note)
+			"execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
+			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w' 
 			"set an id to the new window
 			let w:id = "note"
 		else
-			call notes#edit(a:note)
-			execute 'buffer ' . curr_buf
+			"execute 'buffer ' . curr_buf
 			"Window exist, so i can simple move to it
 			let [tabnr, winnr]=s:FindWinID('note')
-			execute winnr."wincmd w"
+			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	else
 		"Note exist: Open it in a new window if necessary
+		call notes#edit(a:note)
 		if(g:notes_winnr == -1)
-			call notes#edit(a:note)
-			execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
+			"execute a:position . s:resolve_height(g:notes_win_height) . 'split +buffer' . scr_bufnum
+			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w'
 			"set an id to the new window
-			execute 'buffer ' . curr_buf
-			execute 'wincmd w'
 			let w:id = "note"
 		else
-			call notes#edit(a:note)
-			execute 'buffer ' . curr_buf
 			let [tabnr, winnr]=s:FindWinID('note')
-			execute winnr."wincmd w"
-			execute 'buffer ' . scr_bufnum
+			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	endif
 endfunction
@@ -378,9 +375,6 @@ function! s:close_window(force)
 endfunction
 
 function! s:resolve_height(height)
-	" if g:notes_win_height is an int, return that number, else it is a float
-	" interpret it as a fraction of the screen height and return the
-	" corresponding number of lines
 	if has('float') && type(a:height) ==# 5 " type number for float
 		let abs_height = a:height * winheight(0)
 		return float2nr(abs_height)
