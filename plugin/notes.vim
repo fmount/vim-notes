@@ -42,7 +42,6 @@ endif
 
 if !exists('g:notes_winnr')
 	let g:notes_winnr = -1
-	let g:notes_winid = "none"
 endif
 
 augroup bufferset
@@ -297,18 +296,6 @@ function s:Get_fbuf()
 	return -1
 endfunction
 
-" Find a window by the assigned identifier
-function s:FindWinID(id)
-	for tabnr in range(1, tabpagenr('$'))
-		for winnr in range(1, tabpagewinnr(tabnr, '$'))
-			if gettabwinvar(tabnr, winnr, 'id') is a:id
-				return [tabnr, winnr]
-			endif
-		endfor
-	endfor
-	return [-1, -1]
-endfunction
-
 function s:FindWinNumID(id)
 	for tabnr in range(1, tabpagenr('$'))
 		for winnr in range(1, tabpagewinnr(tabnr, '$'))
@@ -325,13 +312,11 @@ command! -complete=customlist,notes#navigate -nargs=0 ScratchOpen call notes#ope
 command! -bang -nargs=0 ScratchClose call notes#close(0)
 
 function! s:open_window(position,note)
-
 	let scr_bufnum = bufnr(a:note)
 	let curr_buf = bufname('%')
 	
 	"Select the notes window by id
-	let [tabnr, winnr]=s:FindWinID('note')
-	let g:notes_winnr = winnr
+	let g:notes_winnr = s:FindWinNumID('note')
 	
 	"Check if the note exist in the main window
 	if(scr_bufnum == -1 || bufnr('$') == 1)
@@ -342,18 +327,18 @@ function! s:open_window(position,note)
 		if(g:notes_winnr == -1)
 			"open a new window and move to it
 			let scr_bufnum = bufnr(a:note)
-			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w' 
+			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w | wincmd J' 
 		else
-			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
+			execute 'buffer ' . curr_buf . ' | ' . g:notes_winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	else
 		"Note exist: Open it in a new window if necessary
 		call notes#edit(a:note)
 		if(g:notes_winnr == -1)
-			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w'
+			execute 'sbuffer' . scr_bufnum . ' | buffer ' . curr_buf . ' | wincmd w | wincmd J'
 		else
-			let [tabnr, winnr]=s:FindWinID('note')
-			execute 'buffer ' . curr_buf . ' | ' . winnr . ' wincmd w | buffer ' . scr_bufnum
+			let g:notes_winnr = s:FindWinNumID('note')
+			execute 'buffer ' . curr_buf . ' | ' . g:notes_winnr . ' wincmd w | buffer ' . scr_bufnum
 		endif
 	endif
 	
@@ -437,8 +422,7 @@ endfunction
 function notes#close(reset)
 	
 	"Select the notes window by id
-	let [tabnr, winnr]=s:FindWinID('note')
-	let g:notes_winnr = winnr
+	let g:notes_winnr = s:FindWinNumID('note')
 	
 	if(g:notes_winnr == -1)
 		echomsg "No window opened"
@@ -448,7 +432,8 @@ function notes#close(reset)
 		execute 'close ' . g:notes_winnr
 		let g:notes_winnr = -1
 	endif
-
+	
+	"Restore the default navigation behaviour
 	nnoremap <C-N> :bnext! <CR>
 	nnoremap <C-P> :bprevious! <CR>
 endfunction
