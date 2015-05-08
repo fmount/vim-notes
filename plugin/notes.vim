@@ -307,9 +307,13 @@ function s:FindWinNumID(id)
 	return -1
 endfunction
 
-command! -complete=customlist,notes#navigate -nargs=1 Scratch call notes#open(<f-args>,<f-args>)
+command! -complete=customlist,notes#navigate -nargs=1 ScratchNote call notes#open(<f-args>,<f-args>)
 command! -complete=customlist,notes#navigate -nargs=0 ScratchOpen call notes#open(-1,-1)
 command! -bang -nargs=0 ScratchClose call notes#close(0)
+
+nnoremap <leader>nv :call notes#open(-1,-1) <CR>
+nnoremap <leader>nc :call notes#close(0)<CR>
+
 
 function! s:open_window(position,note)
 	let scr_bufnum = bufnr(a:note)
@@ -395,7 +399,7 @@ function notes#open(reset,note)
 	let position = g:notes_win_top ? 'topleft ' : 'botright '
 	
 	if(a:note == -1)
-		echomsg "There is no .note file to open, so we open a simple window"
+		"echomsg "There is no .note file to open, so we open a simple window"
 		let bst = s:Get_fbuf()
 		if(bst != -1)
 			"echomsg "Open the bst"
