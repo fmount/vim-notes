@@ -62,7 +62,7 @@ augroup bufferset
 augroup END
 
 command! -complete=customlist,notes#navigate -nargs=1 Note call notes#edit(<f-args>)
-command! -complete=customlist, NoteList call notes#list()
+command! NoteList call notes#list()
 command! -complete=customlist,notes#navigate -nargs=1 NoteDelete call notes#delete(<f-args>) | bdelete!
 command! NoteAutoSaveToggle :call notes#autosave_toggle()
 
