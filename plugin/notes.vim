@@ -15,7 +15,16 @@ endif
 "endif
 
 if !exists('g:notes_folder')
-	let g:notes_folder = "~/.notes"
+	let g:notes_folder = "$HOME/.notes"
+endif
+
+if !exists('g:notes_template_autogen')
+	let g:notes_template_autogen = 0
+endif
+
+if !exists('g:notes_template_path')
+	" Setting defaults
+	call notes#templates()
 endif
 
 if !exists('g:notes_autosave')
@@ -56,6 +65,9 @@ augroup bufferset
 	autocmd BufRead,BufNewFile *.note set filetype=markdown
 	autocmd BufRead,BufNewFile *.note if g:default_keymap | call notes#defaultkeymap() | endif
 	autocmd BufRead,BufNewFile *.note let b:notes_start_time=localtime()
+	autocmd BufNewFile *.note silent! execute '0r '.expand(g:notes_template_path)
+	" parse special text in the templates after the read
+	autocmd BufNewFile * %substitute#\[:VIM_EVAL:\]\(.\{-\}\)\[:END_EVAL:\]#\=eval(submatch(1))#ge
 	"Autosave settings
 	autocmd CursorHold,BufRead *.note call notes#update_buffer()
 	autocmd BufWritePre *.note let b:notes_start_time = localtime()
