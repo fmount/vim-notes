@@ -97,6 +97,18 @@ function notes#delete(...)
 	return delStatus
 endfunction
 
+function notes#templates()
+	let l:tdir = expand(g:notes_folder.'/templates')
+	let g:notes_template_path = expand(tdir).'/template.M'
+	" Create default dir and files
+	if !isdirectory(l:tdir) && g:notes_template_autogen
+		exe "silent !mkdir " . l:tdir
+		" Copy sample template file
+		let s:path = expand('<sfile>:p:h')
+		let l:fl = readfile(expand(s:path).'/templates/template.M', "b")
+		call writefile(l:fl, g:notes_template_path, "s")
+	endif
+endfunction
 
 " Autosave for buffered notes
 function notes#update_buffer()
