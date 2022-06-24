@@ -22,3 +22,15 @@ describe "notes#delete" do
   end
 end
 
+describe "notes#templates" do
+  it "init template (sanity check)" do
+    vim.command('call notes#templates()')
+    vim.edit('test.note')
+    vim.write
+    # Read and print the generated note content
+    f = IO.read('test.note')
+    # Print the resulting content
+    puts f
+    vim.command('call notes#delete("test.note")')
+  end
+end
