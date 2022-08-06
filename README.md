@@ -86,16 +86,12 @@ Customizing templates
 The plugin supports writing notes based on user-defined templates.
 You can either define a particular path where a note template is stored (and set it in your vimrc):
 
-    ```
     g:notes_template_path = <template_dir>/<template_file>
-    ```
 
 or let the plugin configure a default path and generate a sample template for you.
 In this case, you just need to set in your vimrc the following variable:
 
-    ```
     g:notes_template_autogen = 1
-    ```
 
 and both the template directory and the sample file are generated according to the defaults
 specified in the table above.
@@ -114,8 +110,6 @@ notes are stored.
 e.g. assuming `g:notes_folder = "$HOME/.notes"`, the resulting templates/ directory will be something
 like:
 
-    ```
     > tree ~/.notes/templates
     ~/.notes/templates
     └── template.M
-    ```
